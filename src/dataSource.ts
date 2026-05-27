@@ -1533,7 +1533,7 @@ export class DataSource extends Disposable {
 			let commits: GitCommitRecord[] = [];
 			for (let i = 0; i < lines.length - 1; i++) {
 				let line = lines[i].split(GIT_LOG_SEPARATOR);
-				if (line.length !== 6) break;
+				if (line.length !== 6) continue;
 				commits.push({ hash: line[0], parents: line[1] !== '' ? line[1].split(' ') : [], author: line[2], email: line[3], date: parseInt(line[4]), message: line[5] });
 			}
 			return commits;
