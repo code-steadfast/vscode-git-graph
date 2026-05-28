@@ -14,10 +14,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-node@v1
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
-        node-version: '12.x'
+        node-version: '18.x'
     - run: npm install
     - run: npm run compile
     - run: npm run test
+
+    - name: Package VSIX
+      run: npx @vscode/vsce package --no-git-tag-version --no-update-package-json -o git-graph.vsix
+
+    - name: Upload VSIX
+      uses: actions/upload-artifact@v4
+      with:
+        name: git-graph-vsix
+        path: git-graph.vsix
