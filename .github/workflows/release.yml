@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+    - run: npm install
+    - run: npm run compile
+    - run: npm run test
+
+    - name: Get version and generate tag
+      id: version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        LAST_NUM=$(git tag --list "v${VERSION}-sf.*" --sort=-version:refname | head -n1 | grep -oP 'sf\.\K[0-9]+' || echo "0")
+        NEXT_NUM=$((LAST_NUM + 1))
+        TAG="v${VERSION}-sf.${NEXT_NUM}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Package VSIX
+      run: npx @vscode/vsce package --no-git-tag-version --no-update-package-json -o git-graph.vsix
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: Git Graph ${{ steps.version.outputs.tag }}
+        files: git-graph.vsix
+        generate_release_notes: true
